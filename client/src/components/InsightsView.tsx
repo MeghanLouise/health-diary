@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Entry } from '../types';
 
@@ -113,7 +114,8 @@ export default function InsightsView({ entries }: Props) {
       <section className="card">
         <h3>For your doctor</h3>
         <p className="setup">Export a plain-text summary of everything you've logged to bring to an appointment.</p>
-        <button type="button" onClick={exportText}>
+        <button type="button" className="export-button" onClick={exportText}>
+          <Download size={18} strokeWidth={2} />
           Download export
         </button>
       </section>
