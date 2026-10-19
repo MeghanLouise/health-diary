@@ -68,7 +68,7 @@ export default function SignIn() {
       <div className="auth-hero">
         <span className="auth-logo">🌿</span>
         <h1>
-          Welcome to <em>Health&nbsp;Diary</em>
+          Welcome to <em>Nourish</em>
         </h1>
         <p>A quiet place to track how you're really feeling, day by day.</p>
       </div>

@@ -1,4 +1,4 @@
-# Health diary
+# Nourish
 
 A personal health diary: log symptoms, mood, period days and possible triggers (food or
 otherwise), see them on a calendar, and spot patterns between what you log and how you feel.

@@ -92,7 +92,7 @@ export default function App() {
       {firebaseConfigured && user && (
         <header className="masthead">
           <h1>
-            Health <em>diary</em>
+            Nourish
           </h1>
           <button type="button" className="sign-out" onClick={() => signOut(auth!)}>
             Sign out
