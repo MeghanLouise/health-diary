@@ -3,7 +3,9 @@ import { redeemInvite } from '../invites';
 import Spinner from './Spinner';
 
 function friendlyError(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
+  const message = err instanceof Error ? err.message : String(err);
+  // Callable Cloud Functions errors append an HTTP status like " [403]"; not meaningful here.
+  return message.replace(/\s*\[\d+\]$/, '');
 }
 
 interface Props {

@@ -34,8 +34,14 @@ function friendlyError(err: unknown): string {
     case 'auth/unauthorized-domain':
       return "This address isn't an authorized domain in the Firebase project.";
     default:
-      return err instanceof Error ? err.message : String(err);
+      return cleanMessage(err instanceof Error ? err.message : String(err));
   }
+}
+
+// Callable Cloud Functions errors append an HTTP status like " [403]" to the message; it's
+// not meaningful to someone typing an invite code, so strip it for display.
+function cleanMessage(message: string): string {
+  return message.replace(/\s*\[\d+\]$/, '');
 }
 
 interface Props {
