@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from 'firebase/auth';
+import { Leaf } from 'lucide-react';
 import { useState } from 'react';
 import { auth } from '../firebase';
 import Spinner from './Spinner';
@@ -66,7 +67,9 @@ export default function SignIn() {
   return (
     <div className="auth-screen">
       <div className="auth-hero">
-        <span className="auth-logo">🌿</span>
+        <span className="auth-logo">
+          <Leaf size={30} strokeWidth={1.75} />
+        </span>
         <h1>
           Welcome to <em>Nourish</em>
         </h1>

@@ -1,8 +1,10 @@
+import { Angry, ChevronLeft, ChevronRight, Droplet, Frown, Laugh, Meh, Smile } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { addDays, formatLong, todayKey } from '../dates';
 import { quoteForDate } from '../quotes';
 import { COMMON_SYMPTOMS, emptyEntry, MOOD_OPTIONS, type Entry } from '../types';
 import Spinner from './Spinner';
+import SymptomDropdown from './SymptomDropdown';
 import TagPicker from './TagPicker';
 
 interface Props {
@@ -14,11 +16,11 @@ interface Props {
 }
 
 const FEELINGS = [
-  { value: 1, label: 'Rough', icon: '😣' },
-  { value: 2, label: 'Low', icon: '😕' },
-  { value: 3, label: 'Okay', icon: '😐' },
-  { value: 4, label: 'Good', icon: '🙂' },
-  { value: 5, label: 'Great', icon: '😄' },
+  { value: 1, label: 'Rough', Icon: Angry },
+  { value: 2, label: 'Low', Icon: Frown },
+  { value: 3, label: 'Okay', Icon: Meh },
+  { value: 4, label: 'Good', Icon: Smile },
+  { value: 5, label: 'Great', Icon: Laugh },
 ];
 
 export default function DayView({ date, entries, onSave, onNavigateDate, onGoToCalendar }: Props) {
@@ -27,10 +29,13 @@ export default function DayView({ date, entries, onSave, onNavigateDate, onGoToC
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Re-sync from stored data only when the date changes — not on every `entries` update,
+  // since saving an entry changes `entries` too and would otherwise instantly clear "Saved ✓".
   useEffect(() => {
     setEntry(entries[date] ?? emptyEntry(date));
     setSaved(false);
-  }, [date, entries]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
 
   const update = (patch: Partial<Entry>) => {
     setEntry((prev) => ({ ...prev, ...patch }));
@@ -57,11 +62,10 @@ export default function DayView({ date, entries, onSave, onNavigateDate, onGoToC
 
       <div className="day-nav">
         <button type="button" onClick={() => onNavigateDate(addDays(date, -1))} aria-label="Previous day">
-          ‹
+          <ChevronLeft size={20} />
         </button>
         <div className="day-nav-label">
           <strong>{isToday ? 'Today' : formatLong(date)}</strong>
-          {!isToday && <button className="link" type="button" onClick={() => onNavigateDate(todayKey())}>Back to today</button>}
         </div>
         <button
           type="button"
@@ -69,41 +73,48 @@ export default function DayView({ date, entries, onSave, onNavigateDate, onGoToC
           aria-label="Next day"
           disabled={date >= todayKey()}
         >
-          ›
+          <ChevronRight size={20} />
         </button>
       </div>
+
+      {!isToday && (
+        <button type="button" className="back-to-today" onClick={() => onNavigateDate(todayKey())}>
+          Back to today
+        </button>
+      )}
 
       <section className="card">
         <h3>Overall feeling</h3>
         <div className="feeling-row">
-          {FEELINGS.map((f) => (
+          {FEELINGS.map(({ value, label, Icon }) => (
             <button
-              key={f.value}
+              key={value}
               type="button"
-              className={`feeling ${entry.overallFeeling === f.value ? 'feeling-selected' : ''}`}
-              onClick={() => update({ overallFeeling: f.value })}
+              className={`feeling feeling-${value} ${entry.overallFeeling === value ? 'feeling-selected' : ''}`}
+              onClick={() => update({ overallFeeling: value })}
             >
-              <span className="icon">{f.icon}</span>
-              <span>{f.label}</span>
+              <Icon className="icon" size={22} strokeWidth={1.75} />
+              <span>{label}</span>
             </button>
           ))}
         </div>
       </section>
 
-      <section className="card">
-        <label className="period-toggle">
-          <input
-            type="checkbox"
-            checked={entry.period}
-            onChange={(e) => update({ period: e.target.checked })}
-          />
-          Period today
-        </label>
+      <section className="card period-card">
+        <span className="period-card-label">Period today</span>
+        <button
+          type="button"
+          className={`period-circle ${entry.period ? 'period-circle-active' : ''}`}
+          aria-pressed={entry.period}
+          onClick={() => update({ period: !entry.period })}
+        >
+          <Droplet size={22} strokeWidth={1.75} />
+        </button>
       </section>
 
       <section className="card">
-        <TagPicker
-          label="Symptoms"
+        <span className="tag-picker-label">Symptoms</span>
+        <SymptomDropdown
           options={COMMON_SYMPTOMS}
           selected={entry.symptoms}
           onChange={(symptoms) => update({ symptoms })}
@@ -129,6 +140,16 @@ export default function DayView({ date, entries, onSave, onNavigateDate, onGoToC
           options={['Stress', 'Poor sleep', 'Alcohol', 'Travel', 'Weather change', 'Exercise']}
           selected={entry.triggers}
           onChange={(triggers) => update({ triggers })}
+        />
+      </section>
+
+      <section className="card gratitude-card">
+        <h3>What are you grateful for today?</h3>
+        <textarea
+          rows={3}
+          value={entry.gratitude}
+          placeholder="Big or small, anything that made today a little better…"
+          onChange={(e) => update({ gratitude: e.target.value })}
         />
       </section>
 

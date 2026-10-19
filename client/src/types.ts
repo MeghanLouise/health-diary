@@ -8,6 +8,7 @@ export interface Entry {
   mood: string[];
   period: boolean;
   notes: string;
+  gratitude: string;
   updatedAt: number; // epoch ms
 }
 
@@ -20,6 +21,7 @@ export const emptyEntry = (date: string): Entry => ({
   mood: [],
   period: false,
   notes: '',
+  gratitude: '',
   updatedAt: 0,
 });
 

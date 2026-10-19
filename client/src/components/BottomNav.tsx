@@ -1,27 +1,29 @@
+import { CalendarDays, House, Sparkles } from 'lucide-react';
+
 interface Props {
   currentPath?: string;
   onNavigate: (path: string) => void;
 }
 
-const ITEMS: { path: string; label: string; icon: string }[] = [
-  { path: '/', label: 'Today', icon: '🏠' },
-  { path: '/calendar', label: 'Calendar', icon: '📅' },
-  { path: '/insights', label: 'Patterns', icon: '✨' },
+const ITEMS = [
+  { path: '/', label: 'Today', Icon: House },
+  { path: '/calendar', label: 'Calendar', Icon: CalendarDays },
+  { path: '/insights', label: 'Patterns', Icon: Sparkles },
 ];
 
 export default function BottomNav({ currentPath, onNavigate }: Props) {
   if (!currentPath) return null;
   return (
     <nav className="bottom-nav">
-      {ITEMS.map((item) => (
+      {ITEMS.map(({ path, label, Icon }) => (
         <button
-          key={item.path}
+          key={path}
           type="button"
-          className={item.path === currentPath ? 'active' : ''}
-          onClick={() => onNavigate(item.path)}
+          className={path === currentPath ? 'active' : ''}
+          onClick={() => onNavigate(path)}
         >
-          <span className="icon">{item.icon}</span>
-          <span>{item.label}</span>
+          <Icon className="icon" size={20} strokeWidth={2} />
+          <span>{label}</span>
         </button>
       ))}
     </nav>

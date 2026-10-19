@@ -17,6 +17,14 @@
   --sand-light: #e6d8c9;
   --cream: #f7f0e7;
 
+  /* feeling scale: warm (rough) to forest (great) — not just shades of green */
+  --tone-1: #b35a44;
+  --tone-2: #d79c5b;
+  --tone-3: #cbbead;
+  --tone-4: #7fa98c;
+  --tone-5: #35534a;
+  --gold: #e3a92f;
+
   --card-bg: rgba(247, 240, 231, 0.78);
   --card-border: rgba(255, 255, 255, 0.55);
   --radius: 20px;
@@ -109,6 +117,7 @@ textarea {
 /* --- cards & shared surfaces --- */
 
 .card {
+  position: relative;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   backdrop-filter: blur(14px);
@@ -117,6 +126,12 @@ textarea {
   padding: 18px;
   margin-bottom: 14px;
   box-shadow: 0 8px 30px rgba(9, 35, 38, 0.12);
+}
+
+/* backdrop-filter creates a stacking context per card, so a dropdown panel inside one
+   would render behind a later card unless we lift that card above its siblings. */
+.card:has(.dropdown-panel) {
+  z-index: 6;
 }
 
 .card h2,
@@ -151,7 +166,14 @@ textarea {
 }
 
 .auth-logo {
-  font-size: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 
 .auth-hero h1 {
@@ -300,6 +322,18 @@ textarea {
   font-size: 0.75rem;
 }
 
+.back-to-today {
+  display: block;
+  margin: -4px auto 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--forest);
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+
 /* --- feelings --- */
 
 .feeling-row {
@@ -323,29 +357,69 @@ textarea {
 }
 
 .feeling .icon {
-  font-size: 1.3rem;
+  width: 22px;
+  height: 22px;
 }
 
-.feeling-selected {
-  background: var(--green);
-  border-color: var(--green);
+.feeling-selected.feeling-1 {
+  background: var(--tone-1);
+  border-color: var(--tone-1);
+  color: #fff;
+}
+
+.feeling-selected.feeling-2 {
+  background: var(--tone-2);
+  border-color: var(--tone-2);
+  color: #3a2a12;
+}
+
+.feeling-selected.feeling-3 {
+  background: var(--tone-3);
+  border-color: var(--tone-3);
+  color: #3a2f22;
+}
+
+.feeling-selected.feeling-4 {
+  background: var(--tone-4);
+  border-color: var(--tone-4);
+  color: #fff;
+}
+
+.feeling-selected.feeling-5 {
+  background: var(--tone-5);
+  border-color: var(--tone-5);
   color: #fff;
 }
 
 /* --- period toggle --- */
 
-.period-toggle {
+.period-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+}
+
+.period-card-label {
   font-weight: 600;
   color: var(--deep);
 }
 
-.period-toggle input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--green);
+.period-circle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid var(--grey-line);
+  background: var(--grey);
+  color: #8a9a96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.period-circle-active {
+  background: #7a2340;
+  border-color: #7a2340;
+  color: #fff;
 }
 
 /* --- tag picker --- */
@@ -399,6 +473,118 @@ textarea {
   padding: 0 14px;
   font-weight: 600;
   color: var(--teal);
+}
+
+/* --- symptom dropdown --- */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid var(--grey-line);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.dropdown-trigger svg {
+  transition: transform 0.15s ease;
+}
+
+.dropdown-trigger svg.rotated {
+  transform: rotate(180deg);
+}
+
+.dropdown-panel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--grey-line);
+  border-radius: var(--radius-sm);
+  padding: 10px 6px;
+  box-shadow: 0 12px 30px rgba(9, 35, 38, 0.18);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.dropdown-option:hover {
+  background: var(--grey);
+}
+
+.dropdown-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--green);
+}
+
+.dropdown-add {
+  margin: 6px 4px 2px;
+}
+
+.dropdown-selected {
+  margin-top: 10px;
+}
+
+.dropdown-selected .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- calendar day detail --- */
+
+.day-detail h3 {
+  color: var(--forest);
+}
+
+.day-detail-body p {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: #3c4f49;
+  line-height: 1.5;
+}
+
+.day-detail-body p:last-child {
+  margin-bottom: 0;
+}
+
+.period-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c4567f;
+  font-weight: 600;
+}
+
+.open-day-button {
+  margin-top: 14px;
+  width: 100%;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
 }
 
 /* --- notes --- */
@@ -487,27 +673,27 @@ textarea {
 }
 
 .day-cell.feeling-1 {
-  background: #d8dedb;
-  color: #495550;
+  background: var(--tone-1);
+  color: #fff;
 }
 
 .day-cell.feeling-2 {
-  background: #a9c2ae;
-  color: #1c352a;
+  background: var(--tone-2);
+  color: #3a2a12;
 }
 
 .day-cell.feeling-3 {
-  background: var(--sage);
-  color: #163528;
+  background: var(--tone-3);
+  color: #3a2f22;
 }
 
 .day-cell.feeling-4 {
-  background: #5ba17c;
+  background: var(--tone-4);
   color: #fff;
 }
 
 .day-cell.feeling-5 {
-  background: var(--green);
+  background: var(--tone-5);
   color: #fff;
 }
 
@@ -515,18 +701,30 @@ textarea {
   box-shadow: 0 0 0 2px #fff;
 }
 
+.day-cell.is-selected {
+  box-shadow: 0 0 0 2px var(--forest);
+}
+
 .day-cell.is-match {
-  box-shadow: 0 0 0 3px var(--deep);
+  box-shadow: 0 0 0 3px var(--gold), 0 0 0 5px rgba(227, 169, 47, 0.45), 0 4px 14px rgba(227, 169, 47, 0.5);
+  transform: scale(1.05);
+}
+
+.match-flag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--cream);
 }
 
 .period-dot {
   position: absolute;
   bottom: 4px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #7a2340;
-  display: inline-block;
+  color: #c4567f;
 }
 
 .calendar-legend {
@@ -553,15 +751,27 @@ textarea {
 }
 
 .feeling-swatch.feeling-1 {
-  background: #d8dedb;
+  background: var(--tone-1);
+}
+
+.feeling-swatch.feeling-2 {
+  background: var(--tone-2);
 }
 
 .feeling-swatch.feeling-3 {
-  background: var(--sage);
+  background: var(--tone-3);
+}
+
+.feeling-swatch.feeling-4 {
+  background: var(--tone-4);
 }
 
 .feeling-swatch.feeling-5 {
-  background: var(--green);
+  background: var(--tone-5);
+}
+
+.legend-item svg {
+  color: #c4567f;
 }
 
 /* --- insights --- */
