@@ -26,3 +26,18 @@ otherwise), see them on a calendar, and spot patterns between what you log and h
 
 Each person's data lives at `users/{uid}/entries/{date}` in Firestore, locked down so only that
 signed-in user can read or write it.
+
+## Encryption
+
+Firestore already encrypts everything at rest and in transit by default (Google-managed).
+On top of that, entry content (symptoms, mood, notes, gratitude, etc.) is also encrypted in the
+browser with AES-256-GCM before it's ever sent, using a random key generated the first time an
+account saves anything. That key is stored in Firestore too (`users/{uid}/meta/encryptionKey`),
+protected by the same per-user security rule as everything else.
+
+This guards against exposure of the raw documents — a leaked export, a misconfigured security
+rule, someone browsing the Firestore console — not against someone with full Firebase/Google Cloud
+project access, since the key lives in the same project. It's not zero-knowledge end-to-end
+encryption (that would require deriving the key from a password, which would break Google sign-in
+and make a forgotten password unrecoverable); this trades some of that guarantee for keeping
+sign-in and account recovery simple.
