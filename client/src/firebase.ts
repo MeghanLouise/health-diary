@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 
 // These values are public identifiers (not secrets). They come from .env as VITE_FIREBASE_*.
 const config = {
@@ -16,3 +17,4 @@ export const firebaseConfigured = Boolean(config.apiKey && config.authDomain && 
 const app = firebaseConfigured ? initializeApp(config) : null;
 export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
+export const functions = app ? getFunctions(app) : null;

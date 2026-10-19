@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
+    "invite": "node -p \"crypto.randomUUID()\"",
     "deploy": "firebase deploy"
   },
   "engines": {

@@ -1,10 +1,26 @@
 rules_version = '2';
 
-// Each person can only ever read or write their own data, keyed by their Firebase uid.
+// Each person can only ever read or write their own data, keyed by their Firebase uid —
+// except activation, which only the Cloud Functions (Admin SDK, which bypasses these rules)
+// may set, so a signed-in client can never grant itself access without a valid invite code.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid}/{document=**} {
+    match /users/{uid}/entries/{entryId} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/meta/encryptionKey {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/meta/activation {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Tracks which one-time invite codes have been redeemed. Only Cloud Functions touch this.
+    match /invites_used/{code} {
+      allow read, write: if false;
     }
   }
 }

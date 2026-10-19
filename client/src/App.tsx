@@ -4,10 +4,11 @@ import BottomNav from './components/BottomNav';
 import CalendarView from './components/CalendarView';
 import DayView from './components/DayView';
 import InsightsView from './components/InsightsView';
+import InviteGate from './components/InviteGate';
 import SignIn from './components/SignIn';
 import Spinner from './components/Spinner';
 import { todayKey } from './dates';
-import { loadEntries, saveEntry } from './db';
+import { isActivated, loadEntries, saveEntry } from './db';
 import { auth, firebaseConfigured } from './firebase';
 import type { Entry } from './types';
 import { useAuth } from './useAuth';
@@ -19,10 +20,19 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(todayKey());
   const [entries, setEntries] = useState<Record<string, Entry>>({});
   const [entriesLoading, setEntriesLoading] = useState(false);
+  // null = still checking. Once true it stays true for this sign-in.
+  const [activated, setActivated] = useState<boolean | null>(null);
+  const [finishingSignUp, setFinishingSignUp] = useState(false);
 
   const uid = user?.uid;
   useEffect(() => {
-    if (!uid) {
+    setActivated(null);
+    if (!uid) return;
+    isActivated(uid).then((yes) => setActivated((prev) => prev || yes));
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid || activated !== true) {
       setEntries({});
       return;
     }
@@ -30,7 +40,7 @@ export default function App() {
     loadEntries(uid)
       .then(setEntries)
       .finally(() => setEntriesLoading(false));
-  }, [uid]);
+  }, [uid, activated]);
 
   const handleSave = async (entry: Entry) => {
     if (!uid) return;
@@ -56,7 +66,17 @@ export default function App() {
       </div>
     );
   } else if (!user) {
-    content = <SignIn />;
+    content = (
+      <SignIn onSignUpProgress={setFinishingSignUp} onActivated={() => setActivated(true)} />
+    );
+  } else if (activated === null || finishingSignUp) {
+    content = (
+      <div className="page-loading">
+        <Spinner label={finishingSignUp ? 'Creating your account…' : 'Loading…'} />
+      </div>
+    );
+  } else if (!activated) {
+    content = <InviteGate onActivated={() => setActivated(true)} />;
   } else if (entriesLoading) {
     content = (
       <div className="page-loading">
@@ -91,16 +111,16 @@ export default function App() {
     <div data-page={path === '/calendar' ? 'calendar' : path === '/insights' ? 'insights' : 'today'}>
       {firebaseConfigured && user && (
         <header className="masthead">
-          <h1>
-            Nourish
-          </h1>
+          <h1>Nourish</h1>
           <button type="button" className="sign-out" onClick={() => signOut(auth!)}>
             Sign out
           </button>
         </header>
       )}
       <main className="app">{content}</main>
-      {firebaseConfigured && user && <BottomNav currentPath={path || '/'} onNavigate={navigate} />}
+      {firebaseConfigured && user && activated && (
+        <BottomNav currentPath={path || '/'} onNavigate={navigate} />
+      )}
     </div>
   );
 }

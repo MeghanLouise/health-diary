@@ -5,6 +5,14 @@ import type { Entry } from './types';
 
 const entriesRef = (uid: string) => collection(db!, 'users', uid, 'entries');
 const keyDocRef = (uid: string) => doc(db!, 'users', uid, 'meta', 'encryptionKey');
+const activationDocRef = (uid: string) => doc(db!, 'users', uid, 'meta', 'activation');
+
+// Only Cloud Functions ever write this doc (see firestore.rules and functions/index.js) —
+// a signed-in client can read whether it's activated, but can't set it without a valid invite.
+export async function isActivated(uid: string): Promise<boolean> {
+  const snap = await getDoc(activationDocRef(uid));
+  return snap.exists() && snap.data()?.activated === true;
+}
 
 // Cached per uid for the life of the tab, so we don't re-fetch it before every save.
 const keyCache = new Map<string, CryptoKey>();

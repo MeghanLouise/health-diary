@@ -7,6 +7,7 @@ import {
 import { Leaf } from 'lucide-react';
 import { useState } from 'react';
 import { auth } from '../firebase';
+import { checkInvite, redeemInvite } from '../invites';
 import Spinner from './Spinner';
 
 // Turn Firebase error codes into friendly messages. Empty string = show nothing.
@@ -37,10 +38,17 @@ function friendlyError(err: unknown): string {
   }
 }
 
-export default function SignIn() {
+interface Props {
+  // Lets the app hold off on showing the invite screen while a new account finishes signing up.
+  onSignUpProgress: (inProgress: boolean) => void;
+  onActivated: () => void;
+}
+
+export default function SignIn({ onSignUpProgress, onActivated }: Props) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -59,7 +67,19 @@ export default function SignIn() {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (mode === 'signin') return run(() => signInWithEmailAndPassword(auth!, email, password));
-    return run(() => createUserWithEmailAndPassword(auth!, email, password));
+
+    // Sign-up: verify the invite code first so no stray accounts get created, then redeem it.
+    run(async () => {
+      await checkInvite(inviteCode);
+      onSignUpProgress(true);
+      try {
+        await createUserWithEmailAndPassword(auth!, email, password);
+        await redeemInvite(inviteCode);
+        onActivated();
+      } finally {
+        onSignUpProgress(false);
+      }
+    });
   };
 
   const google = () => run(() => signInWithPopup(auth!, new GoogleAuthProvider()));
@@ -89,6 +109,19 @@ export default function SignIn() {
         </p>
 
         <form onSubmit={submit}>
+          {mode === 'signup' && (
+            <label>
+              Invite code
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+                required
+              />
+            </label>
+          )}
           <label>
             Email
             <input
